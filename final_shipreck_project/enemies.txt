@@ -1,0 +1,3 @@
+name base_enemy speed 2 health 50 max 5 level 0 damage 10
+name fast_enemy speed 3 health 10 max 3 level 1 damage 5
+name tank_enemy speed 1 health 100 max 10 level 1 damage 20
