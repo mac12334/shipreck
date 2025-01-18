@@ -12,6 +12,8 @@ w, h = inf.current_w, inf.current_h - 32
 
 win = pygame.display.set_mode((w, h))
 space_ship_images = pygame.image.load("assets/ship_assets.png").convert_alpha()
+
+
 PLAY = pygame.image.load("assets/play.png").convert_alpha()
 P_POS = (w / 2) - (PLAY.get_width() / 2), 100
 SETTING = pygame.image.load("assets/settings.png").convert_alpha()
@@ -20,6 +22,11 @@ MODE = pygame.image.load("assets/mode.png").convert_alpha()
 M_POS = (w / 2) - (MODE.get_width() / 2), S_POS[1] + SETTING.get_height() + 50
 ESC = pygame.image.load("assets/escape.png").convert_alpha()
 E_POS = (w / 2) - (MODE.get_width() / 2), M_POS[1] + MODE.get_height() + 50
+
+SOUND = pygame.image.load("assets/sound.png").convert_alpha()
+CONTROLS = pygame.image.load("assets/controls.png").convert_alpha()
+INFO = pygame.image.load("assets/info.png").convert_alpha()
+BACK = pygame.image.load("assets/back.png").convert_alpha()
 
 space_ships = spritesheet(space_ship_images, 6, 1, 31, 31, 2)
 enemy_data = get_all_dict("enemies.txt")
