@@ -25,6 +25,10 @@ class Player(pygame.sprite.Sprite):
         self.mask_image = None
 
         self.play = "menu"
+        self.vol = 0.66
+        self.high_vol = 1
+        self.norm_vol = 0.66
+        self.low_vol = 0.33
 
         # controls
         self.speed_up = pygame.K_UP
