@@ -3,7 +3,6 @@ import buttons_class
 from spritesheet import spritesheet
 import sprite_classes
 from txt_to_dictionary import get_all_dict
-import cProfile
 
 pygame.init()
 
