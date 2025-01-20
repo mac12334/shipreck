@@ -15,7 +15,7 @@ def no_vol(client: sprite_classes.Player) -> None:
     client.vol = 0
 
 def health_boost(client: sprite_classes.Player) -> None:
-    client.health += 50
+    client.health += 10
     if client.health > 100:
         client.health = 100
 

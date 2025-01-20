@@ -31,6 +31,8 @@ class Player(pygame.sprite.Sprite):
         self.low_vol = 0.33
 
         self.power = None
+        self.space_counter = 0
+        self.start_space = False
 
         # controls
         self.speed_up = pygame.K_UP
@@ -45,6 +47,28 @@ class Player(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if current_time - self.last_update >= 375 and not self.wait_over:
             self.wait_over = True
+    
+    def draw_power_up(self) -> None:
+        angle = self.angle
+        pos = self.pos
+        screen = self.screen
+        start_space = False
+        space = self.space_counter
+        power = self.power
+        match self.power:
+            case "aim":
+                d = 3000
+                dx = math.cos(math.radians(angle)) * d
+                dy = math.sin(math.radians(angle)) * d
+                out = pos[0] + dx, pos[1] - dy
+                pygame.draw.line(screen, (100, 0, 0), pos, out, 3)
+                start_space = True
+                if space >= 5:
+                    power = None
+                    space = 0
+        self.start_space = start_space
+        self.power = power
+        self.space_counter = space
     
     def movement(self):
         k = pygame.key.get_pressed()
@@ -74,6 +98,8 @@ class Player(pygame.sprite.Sprite):
             self.can_shoot = False
             self.wait_over = False
             self.waiting(True)
+            if self.start_space:
+                self.space_counter += 1
     
     def screen_wrapping(self):
         x, y = self.pos
@@ -98,8 +124,11 @@ class Player(pygame.sprite.Sprite):
         self.screen_wrapping()
         if self.health != self.max_health:
             self.get_color()
+        if self.health == 100:
+            self.mask_image = None
     
     def draw(self, screen: pygame.Surface) -> None:
+        self.draw_power_up()
         screen.blit(self.image, self.rect)
         if self.mask_image != None:
             screen.blit(self.mask_image, self.rect)
@@ -265,6 +294,7 @@ class PowerUp(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.name = data["name"]
         self.image = data["image"]
+        self.func: callable[[Player], None] = data["func"]
         self.pos = pos
         self.rect = self.image.get_rect(center = self.pos)
         self.client = client
@@ -274,6 +304,7 @@ class PowerUp(pygame.sprite.Sprite):
     
     def update(self) -> None:
         if self.collide():
+            self.func(self.client)
             self.kill()
 
 def rand_bool(prob: float) -> bool:

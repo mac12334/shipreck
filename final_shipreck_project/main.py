@@ -57,8 +57,10 @@ pygame.mixer.music.set_volume(0.75)
 for i, enemy in enumerate(enemy_data):
     enemy["image"] = space_ships[i + 1]
 
+funcs = [health_boost, aim]
 for i, power in enumerate(power_up_data):
     power["image"] = space_ships[i + 4]
+    power["func"] = funcs[i]
 
 clock = pygame.time.Clock()
 #ALL CAPS FOR THIS FONT EXCEPT FOR INTEGERS
