@@ -12,6 +12,9 @@ w, h = inf.current_w, inf.current_h - 32
 win = pygame.display.set_mode((w, h))
 space_ship_images = pygame.image.load("assets/ship_assets.png").convert_alpha()
 
+deploy = pygame.image.load("assets/deployer.png").convert_alpha()
+deploy = pygame.transform.scale2x(deploy)
+
 
 PLAY = pygame.image.load("assets/play.png").convert_alpha()
 P_POS = (w / 2) - (PLAY.get_width() / 2), 200
@@ -70,6 +73,7 @@ def no_vol(client: sprite_classes.Player) -> None:
 
 def main():
     player = sprite_classes.Player(space_ships[0], win)
+    deployer = sprite_classes.Deployer(deploy)
     enemies = sprite_classes.EnemyGroup()
     menu = buttons_class.ButtonTree()
 
@@ -119,16 +123,21 @@ def main():
             sprite_classes.player_bullets.draw(win)
             enemies.update()
             enemies.draw(win)
+            deployer.update(win)
+            deployer.draw(win)
             player.update()
             player.draw(win)
         elif player.play == "menu":
             run = menu.update(win, player)
             pygame.mixer.music.set_volume(player.vol)
         else:
+            prev_sound = player.vol
             enemies.empty()
             sprite_classes.player_bullets.empty()
             player = sprite_classes.Player(space_ships[0], win)
+            deployer = sprite_classes.Deployer(deploy)
             player.play = "menu"
+            player.vol = prev_sound
             menu.starting_point()
 
         pygame.display.update()

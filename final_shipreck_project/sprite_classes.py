@@ -264,3 +264,65 @@ class EnemyGroup(pygame.sprite.Group):
             screen.blit(sprite.image, sprite.rect)
             if sprite.mask_image != None:
                 screen.blit(sprite.mask_image, sprite.rect)
+
+class Deployer(pygame.sprite.Sprite):
+    def __init__(self, image: pygame.Surface) -> None:
+        pygame.sprite.Sprite.__init__(self)
+        self.image = image
+        self.pos = (-100, -100)
+        self.rect = self.image.get_rect(center = self.pos)
+        self.dir = None
+        self.cur_moving = False
+        self.last_rot = 0
+    
+    def direction(self) -> None:
+        self.image = pygame.transform.rotate(self.image, -self.last_rot)
+        d = ["north", "south", "west", "east"]
+        number = random.randint(0, 3)
+        self.dir = d[number]
+    
+    def set_up_dir(self, screen: pygame.Surface) -> None:
+        match self.dir:
+            case "north":
+                self.image = pygame.transform.rotate(self.image, -180)
+                self.pos = random.randint(self.image.get_width(), screen.get_width() - self.image.get_width()), 0
+                self.last_rot = -180
+            case "west":
+                self.image = pygame.transform.rotate(self.image, 90)
+                self.pos = screen.get_width(), random.randint(self.image.get_height(), screen.get_height() - self.image.get_height())
+                self.last_rot = 90
+            case "south":
+                self.image = pygame.transform.rotate(self.image, 0)
+                self.pos = random.randint(self.image.get_width(), screen.get_width() - self.image.get_width()), screen.get_height()
+                self.last_rot = 0
+            case "east":
+                self.image = pygame.transform.rotate(self.image, -90)
+                self.pos = 0, random.randint(self.image.get_height(), screen.get_height() - self.image.get_height())
+                self.last_rot = -90
+    
+    def move_dir(self, screen: pygame.Surface) -> None:
+        match self.dir:
+            case "north":
+                self.pos = self.pos[0], self.pos[1] + 5
+            case "west":
+                self.pos = self.pos[0] - 5, self.pos[1]
+            case "south":
+                self.pos = self.pos[0], self.pos[1] - 5
+            case "east":
+                self.pos = self.pos[0] + 5, self.pos[1]
+        if not(0 <= self.pos[0] <= screen.get_width()) and self.dir in ["east", "west"]:
+            self.cur_moving = False
+        if not(0 <= self.pos[1] <= screen.get_height()) and self.dir in ["north", "south"]:
+            self.cur_moving = False
+    
+    def update(self, screen: pygame.Surface) -> None:
+        if not self.cur_moving:
+            self.direction()
+            self.set_up_dir(screen)
+            self.cur_moving = True
+        if self.cur_moving:
+            self.move_dir(screen)
+            self.rect = self.image.get_rect(center = self.pos)
+    
+    def draw(self, screen: pygame.Surface) -> None:
+        screen.blit(self.image, self.rect)
