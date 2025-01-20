@@ -30,6 +30,8 @@ class Player(pygame.sprite.Sprite):
         self.norm_vol = 0.66
         self.low_vol = 0.33
 
+        self.power = None
+
         # controls
         self.speed_up = pygame.K_UP
         self.turn_left = pygame.K_LEFT
@@ -196,16 +198,12 @@ class Enemy(pygame.sprite.Sprite):
         self.mask_image = mask.to_surface(setcolor=(r, g, 0, 50),unsetcolor=(0, 0, 0, 0))
     
     def collide_other(self) -> None:
-        has_collided = False
         groups = self.groups()
         for group in groups:
             for sprite in group.sprites():
                 if sprite != self:
                     if pygame.sprite.collide_circle(self, sprite):
                         self.collided(sprite)
-                        has_collided = True
-        if not has_collided:
-            self.speed = self.o_speed
 
     def collided(self, other: Self) -> None:
         # unpacks their respective x and y coordinates
@@ -226,9 +224,6 @@ class Enemy(pygame.sprite.Sprite):
         #aplies the changes to the position so that the circles don't overlap
         self.pos = self.pos[0] + (disx / 2), self.pos[1] + (disy / 2)
         other.pos = other.pos[0] + (-disx / 2), other.pos[1] + (-disy / 2)
-        
-        self.speed = self.o_speed + 1
-        other.speed = other.o_speed - 1
         
     
     def update(self) -> None:
@@ -265,8 +260,27 @@ class EnemyGroup(pygame.sprite.Group):
             if sprite.mask_image != None:
                 screen.blit(sprite.mask_image, sprite.rect)
 
+class PowerUp(pygame.sprite.Sprite):
+    def __init__(self, data: dict[str, any], pos: tuple[int, int], client: Player) -> None:
+        pygame.sprite.Sprite.__init__(self)
+        self.name = data["name"]
+        self.image = data["image"]
+        self.pos = pos
+        self.rect = self.image.get_rect(center = self.pos)
+        self.client = client
+    
+    def collide(self) -> bool:
+        return pygame.sprite.collide_mask(self, self.client)
+    
+    def update(self) -> None:
+        if self.collide():
+            self.kill()
+
+def rand_bool(prob: float) -> bool:
+    return random.random() < prob
+
 class Deployer(pygame.sprite.Sprite):
-    def __init__(self, image: pygame.Surface) -> None:
+    def __init__(self, image: pygame.Surface, power_data: list[dict], client: Player) -> None:
         pygame.sprite.Sprite.__init__(self)
         self.image = image
         self.pos = (-100, -100)
@@ -274,6 +288,10 @@ class Deployer(pygame.sprite.Sprite):
         self.dir = None
         self.cur_moving = False
         self.last_rot = 0
+        self.power_data = power_data
+        self.client = client
+        self.group = pygame.sprite.Group()
+        self.has_deployed = False
     
     def direction(self) -> None:
         self.image = pygame.transform.rotate(self.image, -self.last_rot)
@@ -300,6 +318,15 @@ class Deployer(pygame.sprite.Sprite):
                 self.pos = 0, random.randint(self.image.get_height(), screen.get_height() - self.image.get_height())
                 self.last_rot = -90
     
+    def deploy_power(self, is_over: bool) -> None:
+        b = rand_bool(0.01)
+        if (b or is_over) and len(self.group) < 5:
+            number = random.randint(0, len(self.power_data) - 1)
+            power = PowerUp(self.power_data[number], self.pos, self.client)
+            self.group.add(power)
+            return True
+        return False
+    
     def move_dir(self, screen: pygame.Surface) -> None:
         match self.dir:
             case "north":
@@ -314,15 +341,20 @@ class Deployer(pygame.sprite.Sprite):
             self.cur_moving = False
         if not(0 <= self.pos[1] <= screen.get_height()) and self.dir in ["north", "south"]:
             self.cur_moving = False
+        if not self.has_deployed:
+            self.has_deployed = self.deploy_power((not self.cur_moving))
     
     def update(self, screen: pygame.Surface) -> None:
         if not self.cur_moving:
+            self.has_deployed = False
             self.direction()
             self.set_up_dir(screen)
             self.cur_moving = True
         if self.cur_moving:
             self.move_dir(screen)
             self.rect = self.image.get_rect(center = self.pos)
+        self.group.update()
     
     def draw(self, screen: pygame.Surface) -> None:
+        self.group.draw(screen)
         screen.blit(self.image, self.rect)

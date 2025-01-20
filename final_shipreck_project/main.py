@@ -3,6 +3,7 @@ import buttons_class
 from spritesheet import spritesheet
 import sprite_classes
 from txt_to_dictionary import get_all_dict
+from callbacks import *
 
 pygame.init()
 
@@ -46,6 +47,7 @@ H_POS = N_POS[0] + VOL_NORM.get_width() + 50, 200
 
 space_ships = spritesheet(space_ship_images, 6, 1, 31, 31, 2)
 enemy_data = get_all_dict("enemies.txt")
+power_up_data = get_all_dict("power_ups.txt")
 
 pygame.mixer.music.load("assets/back.wav")
 pygame.mixer.music.play(-1)
@@ -55,25 +57,16 @@ pygame.mixer.music.set_volume(0.75)
 for i, enemy in enumerate(enemy_data):
     enemy["image"] = space_ships[i + 1]
 
+for i, power in enumerate(power_up_data):
+    power["image"] = space_ships[i + 4]
+
 clock = pygame.time.Clock()
 #ALL CAPS FOR THIS FONT EXCEPT FOR INTEGERS
 font = pygame.font.Font("assets/game_font.ttf", 32)
 
-def play(client: sprite_classes.Player) -> None:
-    client.play = "play"
-
-def high(client: sprite_classes.Player) -> None:
-    client.vol = client.high_vol
-def norm(client: sprite_classes.Player) -> None:
-    client.vol = client.norm_vol
-def low(client: sprite_classes.Player) -> None:
-    client.vol = client.low_vol
-def no_vol(client: sprite_classes.Player) -> None:
-    client.vol = 0
-
 def main():
     player = sprite_classes.Player(space_ships[0], win)
-    deployer = sprite_classes.Deployer(deploy)
+    deployer = sprite_classes.Deployer(deploy, power_up_data, player)
     enemies = sprite_classes.EnemyGroup()
     menu = buttons_class.ButtonTree()
 
@@ -135,7 +128,7 @@ def main():
             enemies.empty()
             sprite_classes.player_bullets.empty()
             player = sprite_classes.Player(space_ships[0], win)
-            deployer = sprite_classes.Deployer(deploy)
+            deployer = sprite_classes.Deployer(deploy, power_up_data, player)
             player.play = "menu"
             player.vol = prev_sound
             menu.starting_point()
