@@ -11,6 +11,8 @@ class Player(pygame.sprite.Sprite):
         self.image = image
         self.pos = (screen.get_width() / 2, screen.get_height() / 2)
         self.rect = self.image.get_rect(center = self.pos)
+        self.dont_spawn_here = pygame.Rect(0, 0, 75, 75)
+        self.dont_spawn_here.center = self.pos
         self.screen = screen
 
         self.angle = 0
@@ -25,6 +27,7 @@ class Player(pygame.sprite.Sprite):
         self.mask_image = None
 
         self.play = "menu"
+        self.game = "default"
         self.vol = 0.66
         self.high_vol = 1
         self.norm_vol = 0.66
@@ -35,6 +38,12 @@ class Player(pygame.sprite.Sprite):
         self.start_space = False
 
         # controls
+        self.change_speed = False
+        self.change_slow = False
+        self.change_left = False
+        self.change_right = False
+        self.change_shoot = False
+
         self.speed_up = pygame.K_UP
         self.turn_left = pygame.K_LEFT
         self.turn_right = pygame.K_RIGHT
@@ -115,6 +124,7 @@ class Player(pygame.sprite.Sprite):
         self.mask_image = mask.to_surface(setcolor=(r, g, 0, 100), unsetcolor=(0, 0, 0, 0))
         
     def update(self) -> None:
+        self.dont_spawn_here.center = self.pos
         if self.health <= 0:
             self.play = "else"
         self.image = pygame.transform.rotate(self.o_image, self.angle - 90)
@@ -187,6 +197,9 @@ class Enemy(pygame.sprite.Sprite):
 
         self.pos = random.randint(31, screen.get_width() - 31), random.randint(31, screen.get_height() - 31)
         self.rect = self.image.get_rect(center=self.pos)
+        while self.rect.colliderect(client.dont_spawn_here):
+            self.pos = random.randint(31, screen.get_width() - 31), random.randint(31, screen.get_height() - 31)
+            self.rect = self.image.get_rect(center=self.pos)
 
         self.client = client
         self.angle = 0

@@ -95,6 +95,8 @@ class ButtonTree:
             if t == "back":
                 parent = self.node.parent_node
                 self.node = parent.parent_node
+            if t == "text":
+                self.node = self.node.parent_node
             if t == "func":
                 self.node.callback(client)
                 self.node = self.node.parent_node

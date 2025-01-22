@@ -16,6 +16,7 @@ space_ship_images = pygame.image.load("assets/ship_assets.png").convert_alpha()
 deploy = pygame.image.load("assets/deployer.png").convert_alpha()
 deploy = pygame.transform.scale2x(deploy)
 
+print(pygame.K_w)
 
 PLAY = pygame.image.load("assets/play.png").convert_alpha()
 P_POS = (w / 2) - (PLAY.get_width() / 2), 200
@@ -45,6 +46,22 @@ L_POS = NO_POS[0] + NO_VOL.get_width() + 50, 200
 N_POS = L_POS[0] + VOL_LOW.get_width() + 50, 200
 H_POS = N_POS[0] + VOL_NORM.get_width() + 50, 200
 
+DEF = pygame.image.load("assets/default.png").convert_alpha()
+D_POS = (w / 2) - (DEF.get_width() / 2), 200
+CRASH = pygame.image.load("assets/crash__course.png").convert_alpha()
+CR_POS = (w / 2) - (CRASH.get_width() / 2), D_POS[1] + DEF.get_height() + 50
+
+SPEED = pygame.image.load("assets/speed__up.png").convert_alpha()
+SP_POS = (w / 2) - (SPEED.get_width() / 2), 200
+SLOW = pygame.image.load("assets/slow__down.png").convert_alpha()
+SL_POS = (w / 2) - (SLOW.get_width() / 2), SP_POS[1] + SPEED.get_height() + 50
+LEFT = pygame.image.load("assets/turn__left.png").convert_alpha()
+LE_POS = (w / 2) - (LEFT.get_width() / 2), SL_POS[1] + SLOW.get_height() + 50
+RIGHT = pygame.image.load("assets/turn__right.png").convert_alpha()
+R_POS  = (w / 2) - (RIGHT.get_width() / 2), LE_POS[1] + LEFT.get_height() + 50
+SHOOT = pygame.image.load("assets/shoot.png").convert_alpha()
+SH_POS = (w /2) - (SHOOT.get_width() / 2), R_POS[1] + RIGHT.get_height() + 50
+
 space_ships = spritesheet(space_ship_images, 6, 1, 31, 31, 2)
 enemy_data = get_all_dict("enemies.txt")
 power_up_data = get_all_dict("power_ups.txt")
@@ -66,6 +83,10 @@ clock = pygame.time.Clock()
 #ALL CAPS FOR THIS FONT EXCEPT FOR INTEGERS
 font = pygame.font.Font("assets/game_font.ttf", 32)
 
+t = "welcome to the game of shipreck. you might have a few questions on why you're fighting endless droves of enemies. well don't fear this is all the info you need. first of all the enemies goal is to crash your ship, you stole one of their prized ships, now they want you gone. next the deployers they give you nice power ups treat the deployer right and you'll be fine"
+
+info = make_text_appear(font, t, (w - 200, B_POS[1] - 100))
+
 def main():
     player = sprite_classes.Player(space_ships[0], win)
     deployer = sprite_classes.Deployer(deploy, power_up_data, player)
@@ -84,14 +105,22 @@ def main():
     menu.add_branch("setting/sound", "back", "back", BACK, B_POS)
 
     menu.add_branch("setting", "controls", "button", CONTROLS, C_POS)
-    menu.add_branch("setting/controls", "back", "back", BACK, B_POS)
+    menu.add_branch("setting/controls", "up", "func", SPEED, SP_POS, change_speed)
+    menu.add_branch("setting/controls", "right", "func", RIGHT, R_POS, change_right)
+    menu.add_branch("setting/controls", "down", "func", SLOW, SL_POS, change_slow)
+    menu.add_branch("setting/controls", "left", "func", LEFT, LE_POS, change_left)
+    menu.add_branch("setting/controls", "shoot", "func", SHOOT, SH_POS, change_shoot)
+    menu.add_branch("setting/controls", "back", "back", BACK, (B_POS[0], B_POS[1] + 200))
 
     menu.add_branch("setting", "info", "button", INFO, I_POS)
-    menu.add_branch("setting/info", "back", "back", BACK, B_POS)
+    menu.add_branch("setting/info", "info", "text", info, ((w/2)-(info.get_width()/2), 200))
+    menu.add_branch("setting/info", "back", "back", BACK, (B_POS[0], B_POS[1] + 100))
 
     menu.add_branch("setting", "back", "back", BACK, B_POS)
 
     menu.add_branch("", "mode", "button", MODE, M_POS)
+    menu.add_branch("mode", "default", "func", DEF, D_POS, default)
+    menu.add_branch("mode", "crash", "func", CRASH, CR_POS, crash)
     menu.add_branch("mode", "back", "back", BACK, B_POS)
 
     menu.add_branch("", "escape", "quit", ESC, E_POS)
@@ -108,31 +137,63 @@ def main():
         win.blit(text, (10, 10))
         if player.play == "play":
 
-            for enemy in enemy_data:
-                en = sprite_classes.Enemy(enemy, win, player)
-                enemies.enemy_add(en)
-
             win.blit(health, h_rect)
-            
+
             sprite_classes.player_bullets.update()
             sprite_classes.player_bullets.draw(win)
-            enemies.update()
-            enemies.draw(win)
-            deployer.update(win)
-            deployer.draw(win)
+            
+            if player.game == "default":
+                for enemy in enemy_data:
+                    en = sprite_classes.Enemy(enemy, win, player)
+                    enemies.enemy_add(en)
+                enemies.update()
+                enemies.draw(win)
+                deployer.update(win)
+                deployer.draw(win)
             player.update()
             player.draw(win)
         elif player.play == "menu":
             run = menu.update(win, player)
             pygame.mixer.music.set_volume(player.vol)
+            match player.game:
+                case "default":
+                    win.blit(DEF, DEF.get_rect(bottomright=(w,h)))
+                case "crash":
+                    win.blit(CRASH, CRASH.get_rect(bottomright=(w,h)))
+            if menu.node.name == "controls":
+                speed = font.render(pygame.key.name(player.speed_up).upper(), True, (255, 255, 255))
+                sp_pos = SP_POS[0] + SPEED.get_width() + 50, 200
+                slow = font.render(pygame.key.name(player.slow_down).upper(), True, (255, 255, 255))
+                sl_pos = SL_POS[0] + SLOW.get_width() + 50, SL_POS[1]
+                left = font.render(pygame.key.name(player.turn_left).upper(), True, (255, 255, 255))
+                l_pos = LE_POS[0] + LEFT.get_width() + 50, LE_POS[1]
+                right = font.render(pygame.key.name(player.turn_right).upper(), True, (255, 255, 255))
+                r_pos = R_POS[0] + RIGHT.get_width() + 50, R_POS[1]
+                shoot = font.render(pygame.key.name(player.shoot).upper(), True, (255, 255, 255))
+                sh_pos = SH_POS[0] + SHOOT.get_width() + 50, SH_POS[1]
+                win.blit(speed, sp_pos)
+                win.blit(slow, sl_pos)
+                win.blit(left, l_pos)
+                win.blit(right, r_pos)
+                win.blit(shoot, sh_pos)
         else:
             prev_sound = player.vol
+            prev_mode = player.game
+            prev_speed = player.speed_up
+            prev_slow = player.slow_down
+            prev_left = player.turn_left
+            prev_right = player.turn_right
             enemies.empty()
             sprite_classes.player_bullets.empty()
             player = sprite_classes.Player(space_ships[0], win)
             deployer = sprite_classes.Deployer(deploy, power_up_data, player)
             player.play = "menu"
             player.vol = prev_sound
+            player.game = prev_mode
+            player.speed_up = prev_speed
+            player.slow_down = prev_slow
+            player.turn_left = prev_left
+            player.turn_right = prev_right
             menu.starting_point()
 
         pygame.display.update()
@@ -141,6 +202,22 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            if event.type == pygame.KEYDOWN:
+                if player.change_speed:
+                    player.speed_up = event.key
+                    player.change_speed = False
+                if player.change_slow:
+                    player.slow_down = event.key
+                    player.change_slow = False
+                if player.change_left:
+                    player.turn_left = event.key
+                    player.change_left = False
+                if player.change_right:
+                    player.turn_right = event.key
+                    player.change_right = False
+                if player.change_shoot:
+                    player.shoot = event.key
+                    player.change_shoot = False
 
 if __name__ == "__main__":
     main()
