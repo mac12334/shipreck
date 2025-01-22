@@ -16,7 +16,7 @@ space_ship_images = pygame.image.load("assets/ship_assets.png").convert_alpha()
 deploy = pygame.image.load("assets/deployer.png").convert_alpha()
 deploy = pygame.transform.scale2x(deploy)
 
-print(pygame.K_w)
+power_up_images = pygame.image.load("assets/power_up_images.png").convert_alpha()
 
 PLAY = pygame.image.load("assets/play.png").convert_alpha()
 P_POS = (w / 2) - (PLAY.get_width() / 2), 200
@@ -63,6 +63,7 @@ SHOOT = pygame.image.load("assets/shoot.png").convert_alpha()
 SH_POS = (w /2) - (SHOOT.get_width() / 2), R_POS[1] + RIGHT.get_height() + 50
 
 space_ships = spritesheet(space_ship_images, 6, 1, 31, 31, 2)
+power_ups = spritesheet(power_up_images, 2, 1, 6, 6, 2)
 enemy_data = get_all_dict("enemies.txt")
 power_up_data = get_all_dict("power_ups.txt")
 
@@ -76,7 +77,7 @@ for i, enemy in enumerate(enemy_data):
 
 funcs = [health_boost, aim]
 for i, power in enumerate(power_up_data):
-    power["image"] = space_ships[i + 4]
+    power["image"] = power_ups[i]
     power["func"] = funcs[i]
 
 clock = pygame.time.Clock()
@@ -86,6 +87,8 @@ font = pygame.font.Font("assets/game_font.ttf", 32)
 t = "welcome to the game of shipreck. you might have a few questions on why you're fighting endless droves of enemies. well don't fear this is all the info you need. first of all the enemies goal is to crash your ship, you stole one of their prized ships, now they want you gone. next the deployers they give you nice power ups treat the deployer right and you'll be fine"
 
 info = make_text_appear(font, t, (w - 200, B_POS[1] - 100))
+shipreck = font.render("SHIPRECK", True, (255, 255, 0))
+shipreck_rect = shipreck.get_rect(topleft=((w / 2) - (shipreck.get_width() / 2), 100))
 
 def main():
     player = sprite_classes.Player(space_ships[0], win)
@@ -132,7 +135,9 @@ def main():
         fps = clock.get_fps()
         text = font.render(f"FPS {int(fps)}", True, (255, 255, 255))
         health = font.render(f"HEALTH {player.health}", True, (255, 255, 255))
-        h_rect = health.get_rect(topright=(w - 10, 10))
+        h_rect = health.get_rect(bottomright=(w-10, h-10))
+        score = font.render(f"SCORE {player.score}", True, (255, 255, 255))
+        score_rect = score.get_rect(topright=(w - 10, 10))
 
         win.blit(text, (10, 10))
         if player.play == "play":
@@ -143,6 +148,7 @@ def main():
             sprite_classes.player_bullets.draw(win)
             
             if player.game == "default":
+                win.blit(score, score_rect)
                 for enemy in enemy_data:
                     en = sprite_classes.Enemy(enemy, win, player)
                     enemies.enemy_add(en)
@@ -153,6 +159,7 @@ def main():
             player.update()
             player.draw(win)
         elif player.play == "menu":
+            win.blit(shipreck, shipreck_rect)
             run = menu.update(win, player)
             pygame.mixer.music.set_volume(player.vol)
             match player.game:

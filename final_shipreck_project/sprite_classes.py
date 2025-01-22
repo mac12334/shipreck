@@ -15,6 +15,8 @@ class Player(pygame.sprite.Sprite):
         self.dont_spawn_here.center = self.pos
         self.screen = screen
 
+        self.score = 0
+
         self.angle = 0
         self.speed = 2.5
 
@@ -132,9 +134,14 @@ class Player(pygame.sprite.Sprite):
         r = 255 * (1 - t)
         g = 255 * t
         mask = pygame.mask.from_surface(self.image)
-        self.mask_image = mask.to_surface(setcolor=(r, g, 0, 100), unsetcolor=(0, 0, 0, 0))
+        try:
+            self.mask_image = mask.to_surface(setcolor=(int(abs(r)), int(abs(g)), 0, 100), unsetcolor=(0, 0, 0, 0))
+        except ValueError:
+            self.play = "else"
+            self.kill()
         
     def update(self) -> None:
+        self.level = self.score // 50
         self.dont_spawn_here.center = self.pos
         if self.health <= 0:
             self.killed.play()
@@ -202,6 +209,8 @@ class Enemy(pygame.sprite.Sprite):
             self.level: int = attr["level"]
         if "damage" in attr:
             self.damage: int = attr["damage"]
+        if "score_mod" in attr:
+            self.score_mod = attr["score_mod"]
 
         self.o_image = self.image
         self.max_health = self.health
@@ -251,7 +260,10 @@ class Enemy(pygame.sprite.Sprite):
         r = 255 * (1 - t)
         g = 255 * (t)
         mask = pygame.mask.from_surface(self.image)
-        self.mask_image = mask.to_surface(setcolor=(r, g, 0, 50),unsetcolor=(0, 0, 0, 0))
+        try:
+            self.mask_image = mask.to_surface(setcolor=(r, g, 0, 50),unsetcolor=(0, 0, 0, 0))
+        except ValueError:
+            self.kill()
     
     def collide_other(self) -> None:
         groups = self.groups()
@@ -284,6 +296,7 @@ class Enemy(pygame.sprite.Sprite):
     
     def update(self) -> None:
         if self.health <= 0:
+            self.client.score += self.score_mod
             self.kill()
         self.find_angle()
         self.move()
@@ -350,6 +363,10 @@ class Deployer(pygame.sprite.Sprite):
         self.client = client
         self.group = pygame.sprite.Group()
         self.has_deployed = False
+        self.wait_time = 30 * 1000
+        self.done_wait = False
+        self.current_time = pygame.time.get_ticks()
+        self.last_update = pygame.time.get_ticks()
     
     def direction(self) -> None:
         self.image = pygame.transform.rotate(self.image, -self.last_rot)
@@ -397,13 +414,27 @@ class Deployer(pygame.sprite.Sprite):
                 self.pos = self.pos[0] + 5, self.pos[1]
         if not(0 <= self.pos[0] <= screen.get_width()) and self.dir in ["east", "west"]:
             self.cur_moving = False
+            self.pos = -100, -100
         if not(0 <= self.pos[1] <= screen.get_height()) and self.dir in ["north", "south"]:
             self.cur_moving = False
+            self.pos = -100, -100
         if not self.has_deployed:
-            self.has_deployed = self.deploy_power((not self.cur_moving))
+            end_north = not(0 <= self.pos[1] <= screen.get_height() - 100) and self.dir == "north"
+            end_south = not(100 <= self.pos[1] <= screen.get_height()) and self.dir == " south"
+            end_east = not(0 <= self.pos[0] <= screen.get_width() - 100) and self.dir == "east"
+            end_west = not(100 <= self.pos[0] <= screen.get_width()) and self.dir == "west"
+            self.has_deployed = self.deploy_power((end_north or end_south or end_east or end_west))
+    
+    def wait(self) -> None:
+        self.current_time = pygame.time.get_ticks()
+        if self.current_time - self.last_update >= self.wait_time:
+            self.done_wait = True
+            self.last_update = pygame.time.get_ticks()
     
     def update(self, screen: pygame.Surface) -> None:
-        if not self.cur_moving:
+        self.wait()
+        if not self.cur_moving and self.done_wait:
+            self.done_wait = False
             self.has_deployed = False
             self.direction()
             self.set_up_dir(screen)
