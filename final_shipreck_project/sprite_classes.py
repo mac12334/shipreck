@@ -49,6 +49,16 @@ class Player(pygame.sprite.Sprite):
         self.turn_right = pygame.K_RIGHT
         self.slow_down = pygame.K_DOWN
         self.shoot = pygame.K_SPACE
+        self.shot_fx = pygame.mixer.Sound("assets/shot.wav")
+        self.shot_fx.set_volume(0.25)
+        self.collect_health = pygame.mixer.Sound("assets/health.wav")
+        self.collect_health.set_volume(0.25)
+        self.collect_aim = pygame.mixer.Sound("assets/aim.wav")
+        self.collect_aim.set_volume(0.25)
+        self.killed = pygame.mixer.Sound("assets/dead.wav")
+        self.killed.set_volume(0.25)
+        self.damaged = pygame.mixer.Sound("assets/damaged.wav")
+        self.damaged.set_volume(0.25)
     
     def waiting(self, should_wait: bool) -> None:
         if should_wait:
@@ -107,6 +117,7 @@ class Player(pygame.sprite.Sprite):
             self.can_shoot = False
             self.wait_over = False
             self.waiting(True)
+            self.shot_fx.play()
             if self.start_space:
                 self.space_counter += 1
     
@@ -126,6 +137,7 @@ class Player(pygame.sprite.Sprite):
     def update(self) -> None:
         self.dont_spawn_here.center = self.pos
         if self.health <= 0:
+            self.killed.play()
             self.play = "else"
         self.image = pygame.transform.rotate(self.o_image, self.angle - 90)
         self.rect = self.image.get_rect(center = self.pos)
@@ -217,6 +229,8 @@ class Enemy(pygame.sprite.Sprite):
     def player_col(self) -> None:
         if pygame.sprite.collide_mask(self, self.client) and self.alive():
             self.client.health -= self.damage
+            if (self.client.health > 0):
+                self.client.damaged.play()
             self.kill()
 
     def bullet_col(self) -> None:

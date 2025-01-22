@@ -23,9 +23,11 @@ def health_boost(client: sprite_classes.Player) -> None:
     client.health += 10
     if client.health > 100:
         client.health = 100
+    client.collect_health.play()
 
 def aim(client: sprite_classes.Player) -> None:
     client.power = "aim"
+    client.collect_aim.play()
 
 def change_speed(client: sprite_classes.Player) -> None:
     client.change_speed = True
