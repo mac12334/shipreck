@@ -31,13 +31,33 @@ def aim(client: sprite_classes.Player) -> None:
 
 def change_speed(client: sprite_classes.Player) -> None:
     client.change_speed = True
+    client.change_slow = False
+    client.change_left = False
+    client.change_right = False
+    client.change_shoot = False
 def change_slow(client: sprite_classes.Player) -> None:
+    client.change_speed = False
     client.change_slow = True
+    client.change_left = False
+    client.change_right = False
+    client.change_shoot = False
 def change_left(client: sprite_classes.Player) -> None:
+    client.change_speed = False
+    client.change_slow = False
     client.change_left = True
+    client.change_right = False
+    client.change_shoot = False
 def change_right(client: sprite_classes.Player) -> None:
+    client.change_speed = False
+    client.change_slow = False
+    client.change_left = False
     client.change_right = True
+    client.change_shoot = False
 def change_shoot(client: sprite_classes.Player) -> None:
+    client.change_speed = False
+    client.change_slow = False
+    client.change_left = False
+    client.change_right = False
     client.change_shoot = True
 
 def make_text_appear(font: pygame.font.Font, text: str, size: tuple[int, int]) -> pygame.Surface:

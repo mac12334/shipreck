@@ -132,14 +132,10 @@ def main():
         
         win.fill((0, 0, 0))
 
-        fps = clock.get_fps()
-        text = font.render(f"FPS {int(fps)}", True, (255, 255, 255))
         health = font.render(f"HEALTH {player.health}", True, (255, 255, 255))
-        h_rect = health.get_rect(bottomright=(w-10, h-10))
+        h_rect = health.get_rect(topleft=(10, 10))
         score = font.render(f"SCORE {player.score}", True, (255, 255, 255))
         score_rect = score.get_rect(topright=(w - 10, 10))
-
-        win.blit(text, (10, 10))
         if player.play == "play":
 
             win.blit(health, h_rect)
