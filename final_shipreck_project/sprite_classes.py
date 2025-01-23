@@ -11,7 +11,7 @@ class Player(pygame.sprite.Sprite):
         self.image = image
         self.pos = (screen.get_width() / 2, screen.get_height() / 2)
         self.rect = self.image.get_rect(center = self.pos)
-        self.dont_spawn_here = pygame.Rect(0, 0, 75, 75)
+        self.dont_spawn_here = pygame.Rect(0, 0, 200, 200)
         self.dont_spawn_here.center = self.pos
         self.screen = screen
 
